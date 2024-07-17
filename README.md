@@ -1,67 +1,70 @@
-# FriendlyElec CM3588 SBC with NAS Kit: Debian Bullseye Installation and Configuration
+Here's a professionally formatted GitHub wiki page for the FriendlyElec CM3588 SBC with NAS Kit:
 
-This guide provides step-by-step instructions for setting up a FriendlyElec CM3588 SBC with NAS Kit, running Debian Bullseye Desktop. It covers essential configurations and optimizations for this specific board.
+# FriendlyElec CM3588 SBC with NAS Kit - Setup Guide
+
+This guide covers the setup process for the FriendlyElec CM3588 Single Board Computer (SBC) with NAS Kit. It includes steps for installing Debian Desktop (Bullseye), configuring essential services, and optimizing the system for use as a Network Attached Storage (NAS) device.
 
 ## Table of Contents
+
 1. [Initial Setup](#initial-setup)
 2. [System Configuration](#system-configuration)
 3. [Network Configuration](#network-configuration)
-4. [Remote Access Setup](#remote-access-setup)
-5. [Additional Configurations](#additional-configurations)
-6. [NAS Specific Setup](#nas-specific-setup)
-7. [Troubleshooting](#troubleshooting)
+4. [Remote Access](#remote-access)
+5. [Localization](#localization)
+6. [Security](#security)
+7. [Additional Software](#additional-software)
+8. [CasaOS Installation](#casaos-installation)
+9. [Troubleshooting](#troubleshooting)
 
 ## Initial Setup
 
-### Creating a Bootable SD Card
-1. Download the Debian-Desktop-Bullseye image for CM3588 SBC from the FriendlyElec website.
-2. Use BalenaEtcher to create a bootable SD card with the downloaded image.
-
-### Installation Process
-1. Insert the SD card into the CM3588 SBC and power on the device.
-2. Wait for the system to complete flashing to the eMMC storage.
-3. Once finished, remove the SD card and reboot the device.
-4. Use a network scanner (e.g., IP Scanner) to find the IP address of your CM3588 SBC.
+1. Download the latest Debian Desktop (Bullseye) image for CM3588 from the FriendlyElec website.
+2. Use BalenaEtcher to create a bootable SD card with the image.
+3. Insert the SD card into the CM3588 and power on the device.
+4. Wait for the system to complete the initial boot and flash the eMMC.
+5. Remove the SD card and reboot the device.
 
 ## System Configuration
 
-### Accessing the CM3588 SBC
-1. Connect to the CM3588 SBC via SSH:
-   ```
-   ssh pi@<device_ip>
-   ```
-   Note: The default username is 'pi'. Make sure to change the password upon first login.
+### Update Package Sources
 
-### Updating Package Sources
-1. Update the package sources list:
-   ```
-   sudo mv /etc/apt/sources.list /etc/apt/sources.list.old
-   sudo nano /etc/apt/sources.list
-   ```
-2. Add the following content to the new `sources.list` file:
-   ```
-   deb http://deb.debian.org/debian bookworm main non-free-firmware
-   deb-src http://deb.debian.org/debian bookworm main non-free-firmware
-   deb http://deb.debian.org/debian-security/ bookworm-security main non-free-firmware
-   deb-src http://deb.debian.org/debian-security/ bookworm-security main non-free-firmware
-   deb http://deb.debian.org/debian bookworm-updates main non-free-firmware
-   deb-src http://deb.debian.org/debian bookworm-updates main non-free-firmware
-   deb http://deb.debian.org/debian bookworm-backports main non-free-firmware
-   deb-src http://deb.debian.org/debian bookworm-backports main non-free-firmware
-   ```
-3. Update the package list:
-   ```
-   sudo apt-get update
-   ```
+1. SSH into the device using the default credentials (username: `pi`, password: `pi`).
+2. Update the package sources:
 
-### Installing Kernel Headers
+```bash
+sudo mv /etc/apt/sources.list /etc/apt/sources.list.old
+sudo nano /etc/apt/sources.list
 ```
+
+3. Add the following content to the new `sources.list` file:
+
+```
+deb http://deb.debian.org/debian bookworm main non-free-firmware
+deb-src http://deb.debian.org/debian bookworm main non-free-firmware
+deb http://deb.debian.org/debian-security/ bookworm-security main non-free-firmware
+deb-src http://deb.debian.org/debian-security/ bookworm-security main non-free-firmware
+deb http://deb.debian.org/debian bookworm-updates main non-free-firmware
+deb-src http://deb.debian.org/debian bookworm-updates main non-free-firmware
+deb http://deb.debian.org/debian bookworm-backports main non-free-firmware
+deb-src http://deb.debian.org/debian bookworm-backports main non-free-firmware
+```
+
+4. Update the package lists:
+
+```bash
+sudo apt-get update
+```
+
+### Install Kernel Headers
+
+```bash
 sudo -i
 dpkg -i /opt/archives/linux-headers-6.1.57_6.1.57-13_arm64.deb
 ```
 
-### Installing Proprietary Firmware (USB Wi-Fi Driver)
-```
+### Install Proprietary Firmware (USB Wi-Fi Driver)
+
+```bash
 sudo apt update
 sudo apt install firmware-realtek
 sudo apt upgrade firmware-realtek
@@ -73,126 +76,191 @@ sudo reboot
 
 ## Network Configuration
 
-### Configuring Wi-Fi
-1. List available Wi-Fi networks:
-   ```
-   nmcli device wifi list
-   ```
+### Configure Wi-Fi
+
+1. List available Wi-Fi access points:
+
+```bash
+nmcli device wifi list
+```
+
 2. Connect to a Wi-Fi network:
-   ```
-   sudo nmcli device wifi connect <SSID> password "<password>"
-   ```
+
+```bash
+sudo nmcli device wifi connect "SSID" password "PASSWORD"
+```
+
 3. Set auto-connect for the Wi-Fi network:
-   ```
-   sudo nmcli connection modify <SSID> connection.autoconnect yes
-   ```
+
+```bash
+sudo nmcli connection modify "SSID" connection.autoconnect yes
+```
+
 4. Set connection priority (optional):
-   ```
-   sudo nmcli connection modify <SSID> connection.autoconnect-priority <priority_number>
-   ```
 
-## Remote Access Setup
+```bash
+sudo nmcli connection modify "SSID" connection.autoconnect-priority 1
+```
 
-### Installing and Configuring x11vnc Server
+## Remote Access
+
+### Install and Configure x11vnc Server
+
 1. Install x11vnc:
-   ```
-   sudo apt-get install x11vnc
-   ```
+
+```bash
+sudo apt-get install x11vnc
+```
+
 2. Set VNC password:
-   ```
-   sudo x11vnc -storepasswd /etc/x11vnc.pwd
-   ```
+
+```bash
+sudo x11vnc -storepasswd /etc/x11vnc.pwd
+```
+
 3. Create a systemd service file:
-   ```
-   sudo nano /lib/systemd/system/x11vnc.service
-   ```
-4. Add the following content to the service file:
-   ```
-   [Unit]
-   Description=Start x11vnc at startup.
-   After=multi-user.target
 
-   [Service]
-   Type=simple
-   ExecStart=/usr/bin/x11vnc -display :0 -auth /home/pi/.Xauthority -forever -loop -noxdamage -repeat -rfbauth /etc/x11vnc.pwd -rfbport 5900 -shared -listen 0.0.0.0 -verbose
-   Restart=on-failure
-   RestartSec=2
+```bash
+sudo nano /lib/systemd/system/x11vnc.service
+```
 
-   [Install]
-   WantedBy=multi-user.target
-   ```
+4. Add the following content:
+
+```ini
+[Unit]
+Description=Start x11vnc at startup.
+After=multi-user.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/x11vnc -display :0 -auth /home/pi/.Xauthority -forever -loop -noxdamage -repeat -rfbauth /etc/x11vnc.pwd -rfbport 5900 -shared -listen 0.0.0.0 -verbose
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target
+```
+
 5. Enable and start the x11vnc service:
-   ```
-   sudo systemctl daemon-reload
-   sudo systemctl enable x11vnc.service
-   sudo systemctl start x11vnc
-   ```
 
-## Additional Configurations
-
-### Setting the Timezone
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable x11vnc.service
+sudo systemctl start x11vnc
 ```
+
+## Localization
+
+### Set Timezone
+
+1. View current timezone:
+
+```bash
+timedatectl
+```
+
+2. List available timezones:
+
+```bash
 timedatectl list-timezones
-sudo timedatectl set-timezone <your_timezone>
 ```
 
-### Configuring Locales
+3. Set the desired timezone:
+
+```bash
+sudo timedatectl set-timezone Your/Timezone
+```
+
+### Configure Locale
+
 1. Reconfigure locales:
-   ```
-   sudo dpkg-reconfigure locales
-   ```
-2. Add locale settings to `.bashrc`:
-   ```
-   echo "export LC_ALL=en_US.UTF-8" >> ~/.bashrc
-   echo "export LANG=en_US.UTF-8" >> ~/.bashrc
-   echo "export LANGUAGE=en_US.UTF-8" >> ~/.bashrc
-   ```
-3. Reboot the system:
-   ```
-   sudo reboot
-   ```
 
-### Installing Tailscale (Optional)
-For secure remote access, you can install Tailscale:
+```bash
+sudo dpkg-reconfigure locales
 ```
+
+2. Add locale environment variables to `.bashrc`:
+
+```bash
+echo "export LC_ALL=en_US.UTF-8" >> ~/.bashrc
+echo "export LANG=en_US.UTF-8" >> ~/.bashrc
+echo "export LANGUAGE=en_US.UTF-8" >> ~/.bashrc
+```
+
+3. Reboot the system:
+
+```bash
+sudo reboot
+```
+
+## Security
+
+### Configure UFW (Uncomplicated Firewall)
+
+1. Install UFW:
+
+```bash
+sudo apt install ufw
+```
+
+2. Set default policies:
+
+```bash
+sudo ufw default deny incoming
+sudo ufw default allow outgoing
+```
+
+3. Allow SSH access:
+
+```bash
+sudo ufw allow 22/tcp
+```
+
+4. Allow VNC access (if needed):
+
+```bash
+sudo ufw allow 5900/tcp
+```
+
+5. Enable the firewall:
+
+```bash
+sudo ufw enable
+```
+
+6. Check the status:
+
+```bash
+sudo ufw status verbose
+```
+
+## Additional Software
+
+### Install Tailscale VPN
+
+```bash
 curl -fsSL https://tailscale.com/install.sh | sh
 ```
 
-## NAS Specific Setup
+## CasaOS Installation
 
-The CM3588 SBC comes with a NAS kit, which allows you to use it as a Network Attached Storage device. Here are some steps to set up the NAS functionality:
+CasaOS is a user-friendly, open-source home cloud system that can enhance your CM3588 NAS capabilities.
 
-1. Install necessary packages for file sharing:
-   ```
-   sudo apt install samba samba-common-bin
-   ```
+1. Install CasaOS:
 
-2. Configure Samba for file sharing:
-   ```
-   sudo nano /etc/samba/smb.conf
-   ```
-   Add your shared folder configuration at the end of the file.
+```bash
+curl -fsSL https://get.casaos.io | sudo bash
+```
 
-3. Create a Samba user:
-   ```
-   sudo smbpasswd -a pi
-   ```
+2. Access the CasaOS web interface by navigating to `http://your-cm3588-ip:80` in a web browser.
 
-4. Restart Samba service:
-   ```
-   sudo systemctl restart smbd
-   ```
-
-5. For advanced NAS features, consider installing and configuring OpenMediaVault, a dedicated NAS solution:
-   ```
-   wget -O - https://github.com/OpenMediaVault-Plugin-Developers/installScript/raw/master/install | sudo bash
-   ```
+3. Follow the on-screen instructions to complete the CasaOS setup.
 
 ## Troubleshooting
 
 ### CPU Fan Issues
-If you encounter CPU fan problems, check the GPIO settings for the CM3588 SBC. You may need to adjust the fan control script based on the specific GPIO pins used in this board.
 
-## Additional Resources
-For more detailed information and advanced configurations, refer to the official FriendlyElec documentation for the CM3588 SBC with NAS Kit:
-[FriendlyElec CM3588 SBC Documentation](https://wiki.friendlyelec.com/wiki/index.php/CM3588)
+If you experience problems with the CPU fan, refer to the FriendlyElec forum thread for potential solutions:
+[CPU - GPIO CPU Fan Fix](https://www.friendlyelec.com/Forum/viewtopic.php?p=14618#p14300)
+
+For more detailed information on the CM3588 and its features, consult the [official FriendlyElec CM3588 documentation](https://wiki.friendlyelec.com/wiki/index.php/CM3588).
