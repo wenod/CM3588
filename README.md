@@ -1,5 +1,3 @@
-Here's a professionally formatted GitHub wiki page for the FriendlyElec CM3588 SBC with NAS Kit:
-
 # FriendlyElec CM3588 SBC with NAS Kit - Setup Guide
 
 This guide covers the setup process for the FriendlyElec CM3588 Single Board Computer (SBC) with NAS Kit. It includes steps for installing Debian Desktop (Bullseye), configuring essential services, and optimizing the system for use as a Network Attached Storage (NAS) device.
