@@ -388,6 +388,50 @@ You can now access your CasaOS interface securely via HTTPS using your Tailscale
 https://your-device-name.your-tailnet.ts.net
 ```
 
+### Automatic Certificate Renewal
+
+To ensure the Tailscale certificate remains valid, set up an automatic renewal process:
+
+1. Create a renewal script (`/usr/local/bin/renew_tailscale_cert.sh`):
+   ```bash
+   #!/bin/bash
+
+   TAILSCALE_HOSTNAME="your-device-name.your-tailnet.ts.net"
+   CERT_DIR="/etc/caddy/ssl"
+   LOG_FILE="/var/log/tailscale_cert_renewal.log"
+
+   sudo mkdir -p $CERT_DIR
+
+   if tailscale cert $TAILSCALE_HOSTNAME; then
+       sudo mv $TAILSCALE_HOSTNAME.crt $CERT_DIR/
+       sudo mv $TAILSCALE_HOSTNAME.key $CERT_DIR/
+       sudo chown caddy:caddy $CERT_DIR/$TAILSCALE_HOSTNAME.crt $CERT_DIR/$TAILSCALE_HOSTNAME.key
+       sudo chmod 644 $CERT_DIR/$TAILSCALE_HOSTNAME.crt
+       sudo chmod 600 $CERT_DIR/$TAILSCALE_HOSTNAME.key
+       sudo systemctl restart caddy
+       echo "Tailscale certificate renewed successfully on $(date)" >> $LOG_FILE
+       echo "Next scheduled renewal: $(date -d "+83 days" "+%Y-%m-%d")" >> $LOG_FILE
+   else
+       echo "Failed to renew Tailscale certificate on $(date)" >> $LOG_FILE
+   fi
+   ```
+
+2. Make the script executable:
+   ```bash
+   sudo chmod +x /usr/local/bin/renew_tailscale_cert.sh
+   ```
+
+3. Set up a cron job to run every 83 days:
+   ```bash
+   sudo crontab -e
+   ```
+   Add the following line:
+   ```
+   0 0 */83 * * /usr/local/bin/renew_tailscale_cert.sh
+   ```
+
+This setup ensures that the CasaOS interface remains accessible securely via HTTPS through the Tailscale network, with automatic certificate renewal occurring approximately one week before the 90-day expiration, maintaining continuous functionality.
+
 ## Advanced Topics
 
 ### Custom DNS Configuration
@@ -404,8 +448,5 @@ For common issues and their solutions, refer to the [FriendlyElec CM3588 Wiki Tr
 - [FriendlyElec Forum - CM3588 Section](https://www.friendlyelec.com/Forum/viewforum.php?f=71)
 - [Tailscale Documentation](https://tailscale.com/kb/)
 - [CasaOS Documentation](https://casaos.io/docs/)
-
-Remember to regularly update your system and renew your Tailscale certificate every 90 days by re-running the `tailscale cert` command.
-
 
 
